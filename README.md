@@ -45,3 +45,7 @@ Just open `index.html` in any browser.
 ## License
 
 MIT
+cd vinyl-collection-github
+git remote add origin https://github.com/YOUR_USERNAME/vinyl-collection.git
+git push -u origin main
+
