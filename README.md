@@ -1,5 +1,5 @@
 # vinyl-collection
-vinyl-collection
+vinyl-collection.html
 # 🎵 Vinyl Collection
 
 A beautiful, interactive vinyl record collection with Spotify integration.
