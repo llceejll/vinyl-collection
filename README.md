@@ -21,6 +21,18 @@ A web-based vinyl record collection viewer showcasing 311 classic rock and metal
 
 Simply open `index.html` in a web browser to view the collection. No build process or dependencies required - all resources are loaded via CDN.
 
+## Automation
+
+This repository is fully automated with GitHub Actions for:
+
+- CI validation on push and pull requests
+- Workflow linting for all workflow changes
+- Scheduled stale issue/PR maintenance
+- Weekly Dependabot updates for GitHub Actions dependencies
+- Auto-merge of Dependabot GitHub Actions updates after required checks pass
+- Scheduled external dependency health checks
+- Automatic deployment to GitHub Pages when `index.html` changes on `main`
+
 ## Album Collection
 
 The collection includes classic albums from artists such as:

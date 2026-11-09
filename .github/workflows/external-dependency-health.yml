@@ -1,0 +1,42 @@
+name: External Dependency Health Check
+
+on:
+  schedule:
+    - cron: "23 4 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate critical external dependencies are reachable
+        run: |
+          set -euo pipefail
+
+          urls=(
+            "https://cdn.tailwindcss.com"
+            "https://unpkg.com/react@18/umd/react.production.min.js"
+            "https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"
+            "https://unpkg.com/@babel/standalone/babel.min.js"
+            "https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/1e/14/58/1e145814-281a-58e0-3ab1-145f5d1af421/886443673441.jpg/600x600bb.jpg"
+          )
+
+          failed=0
+          for url in "${urls[@]}"; do
+            code=$(curl -L --silent --show-error --output /dev/null --write-out '%{http_code}' --max-time 20 "$url")
+            echo "$url -> $code"
+            if [ "$code" -lt 200 ] || [ "$code" -ge 400 ]; then
+              echo "Dependency check failed for $url"
+              failed=1
+            fi
+          done
+
+          if [ "$failed" -ne 0 ]; then
+            exit 1
+          fi
