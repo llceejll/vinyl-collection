@@ -1,36 +1,53 @@
-# This is a basic workflow to help you get started with Actions
+name: Repository CI
 
-name: CI
-
-# Controls when the workflow will run
 on:
-  # Triggers the workflow on push or pull request events but only for the "main" branch
-  push:
-    branches: [ "main" ]
   pull_request:
-    branches: [ "main" ]
-
-  # Allows you to run this workflow manually from the Actions tab
+    branches: ["main"]
+  push:
+    branches: ["main"]
   workflow_dispatch:
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
-jobs:
-  # This workflow contains a single job called "build"
-  build:
-    # The type of runner that the job will run on
-    runs-on: ubuntu-latest
+permissions:
+  contents: read
 
-    # Steps represent a sequence of tasks that will be executed as part of the job
+concurrency:
+  group: repository-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate-repository:
+    runs-on: ubuntu-latest
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v4
 
-      # Runs a single command using the runners shell
-      - name: Run a one-line script
-        run: echo Hello, world!
-
-      # Runs a set of commands using the runners shell
-      - name: Run a multi-line script
+      - name: Validate required files
         run: |
-          echo Add other actions to build,
-          echo test, and deploy your project.
+          test -f README.md
+          test -f index.html
+
+      - name: Validate repository does not contain unresolved merge markers
+        run: |
+          if git grep -nE '^(<<<<<<<|=======|>>>>>>>)' -- .; then
+            echo "Found unresolved merge markers."
+            exit 1
+          fi
+
+      - name: Validate index.html structure
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          html = Path("index.html").read_text(encoding="utf-8").lower()
+          required_snippets = [
+              "<!doctype html",
+              "<head",
+              "<body",
+              "<title",
+              "react",
+              "vinyl",
+          ]
+          missing = [snippet for snippet in required_snippets if snippet not in html]
+          if missing:
+              raise SystemExit(f"index.html is missing required snippets: {', '.join(missing)}")
+          print("index.html passed structural checks.")
+          PY
